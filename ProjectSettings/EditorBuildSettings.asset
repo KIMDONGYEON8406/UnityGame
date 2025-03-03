@@ -9,6 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/TitleScene.unity
     guid: 7a906b8d7a5dc00488444e7260e36d35
   - enabled: 1
-    path: Assets/Scenes/TrainingRoom.unity
-    guid: a997a5cc617a34a43b74039d6f9f2350
+    path: Assets/Scenes/House.unity
+    guid: 7702bdd7cce89b34bb1ca00d30908c14
   m_configObjects: {}

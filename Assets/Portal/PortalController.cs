@@ -1,92 +1,155 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement; //  ì”¬ ì „í™˜ì„ ìœ„í•´ ì¶”ê°€
+
 
 public class PortalController : MonoBehaviour
 {
-    public GameObject portalUI;
-    public Transform targetPosition;
-    public PortalTransport portalTransport;
-    private bool isPortalActive = false;
-    private SkeletonSpawner spawner;
+    public Transform targetPosition; // ğŸš€ ì´ë™í•  ëª©í‘œ ìœ„ì¹˜ (Inspectorì—ì„œ ì„¤ì •)
+    public GameObject portalUI; // ğŸš€ UI ì˜¤ë¸Œì íŠ¸ (Inspectorì—ì„œ ì—°ê²°)
+    private bool isPlayerNear = false; // ğŸš€ í”Œë ˆì´ì–´ê°€ í¬íƒˆ ê·¼ì²˜ì— ìˆëŠ”ì§€ í™•ì¸
 
     private void Start()
     {
-        spawner = FindObjectOfType<SkeletonSpawner>(); // ½ºÆ÷³Ê Ã£±â
+        if (portalUI == null)
+        {
+            portalUI = GameObject.Find("PortalUI"); // ğŸš€ ìë™ìœ¼ë¡œ PortalUI ì°¾ê¸°
+        }
 
-        UIManager.instance.SetUIVisibility(false);
+        if (targetPosition == null)
+        {
+            GameObject spawnPointObj = GameObject.FindWithTag("SpawnPoint"); // ğŸš€ SpawnPoint ìë™ ê°ì§€
+            if (spawnPointObj != null)
+            {
+                targetPosition = spawnPointObj.transform;
+            }
+        }
+
+        if (portalUI != null)
+        {
+            portalUI.SetActive(false); // ğŸš€ ì‹œì‘í•  ë•Œ UI ìˆ¨ê¹€
+        }
+        else
+        {
+            Debug.LogError("âŒ PortalController: portalUIê°€ Inspectorì—ì„œ ì„¤ì •ë˜ì§€ ì•ŠìŒ!");
+        }
+
+        if (targetPosition == null)
+        {
+            Debug.LogError("âŒ PortalController: targetPositionì´ ì„¤ì •ë˜ì§€ ì•ŠìŒ! Inspectorì—ì„œ ì„¤ì • í•„ìš”!");
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            OpenPortalUI();
+            isPlayerNear = true;
+            if (portalUI != null)
+            {
+                portalUI.SetActive(true); // ğŸš€ UI í™œì„±í™”
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            isPlayerNear = false;
+            if (portalUI != null)
+            {
+                portalUI.SetActive(false); // ğŸš€ UI ìˆ¨ê¹€
+            }
         }
     }
 
     private void Update()
     {
-        if (isPortalActive)
+        if (isPlayerNear && portalUI != null && portalUI.activeSelf) // ğŸš€ UIê°€ ìˆì„ ë•Œë§Œ ì‹¤í–‰
         {
-            if (Input.GetKeyDown(KeyCode.C))
+            if (Input.GetKeyDown(KeyCode.C)) // ğŸš€ C í‚¤ë¥¼ ëˆŒë €ì„ ë•Œ ì´ë™
             {
-                GameManager.instance.FadeInOut(() =>
-                {
-                    PortalTransition();
-                });
+                FadeManager.instance?.StartFadeOutThen(MovePlayer);
             }
-            else if (Input.GetKeyDown(KeyCode.X))
+            else if (Input.GetKeyDown(KeyCode.X)) // ğŸš€ X í‚¤ë¥¼ ëˆ„ë¥´ë©´ ì·¨ì†Œ
             {
-                ClosePortalUI();
+                portalUI.SetActive(false);
+                Debug.Log("âŒ ì´ë™ì´ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤.");
             }
         }
     }
 
-    private void OpenPortalUI()
+    private void MovePlayer()
     {
-        portalUI.SetActive(true);
-        isPortalActive = true;
-    }
+        GameObject player = GameObject.FindWithTag("Player");
 
-    private void ClosePortalUI()
-    {
-        portalUI.SetActive(false);
-        isPortalActive = false;
-    }
-
-    private void PortalTransition()
-    {
-        if (portalTransport != null)
+        if (player == null)
         {
-            portalTransport.MovePlayer(GameObject.FindGameObjectWithTag("Player").GetComponent<Collider>(), targetPosition);
+            Debug.LogError("âŒ PortalController: Playerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŒ!");
+            return;
         }
 
-        ClosePortalUI();
-
-        if (spawner != null)
+        if (targetPosition == null)
         {
-            spawner.ActivateEnemies(); // Æ÷Å»À» Åë°úÇÏ¸é ÀûÀ» È°¼ºÈ­
+            Debug.LogError("âŒ PortalController: targetPositionì´ ì„¤ì •ë˜ì§€ ì•ŠìŒ!");
+            return;
         }
 
-        UIManager.instance.SetUIVisibility(true);
+        Debug.Log($"ğŸ”¹ {player.name}ê°€ í¬íƒˆì„ í†µí•´ ì´ë™í•©ë‹ˆë‹¤.");
+
+        CharacterController cc = player.GetComponent<CharacterController>();
+        if (cc != null)
+        {
+            cc.enabled = false; // ğŸš€ ì´ë™ ì „ CharacterController ë¹„í™œì„±í™”
+        }
+
+        player.transform.position = targetPosition.position;
+        player.transform.rotation = targetPosition.rotation;
+
+        if (cc != null)
+        {
+            cc.enabled = true; // ğŸš€ ì´ë™ í›„ CharacterController ë‹¤ì‹œ í™œì„±í™”
+        }
+
+        if (portalUI != null)
+        {
+            portalUI.SetActive(false); // ğŸš€ ì´ë™ í›„ UI ë‹«ê¸°
+        }
+
+        Debug.Log($"ğŸ”¹ {player.name}ì˜ ìƒˆë¡œìš´ ìœ„ì¹˜: {player.transform.position}");
     }
 }
 
 
 
 
+
+
+
+
+
+
+
+
 //public class PortalController : MonoBehaviour
 //{
-//    public GameObject portalUI; // PortalUI ÆĞ³Î
-//    public Transform targetPosition; // ÀÌµ¿ÇÒ ¸ñÀûÁö À§Ä¡ (Inspector¿¡¼­ ¼³Á¤)
-//    public PortalTransport portalTransport; // Æ÷Å» ÀÌµ¿ Ã³¸® ½ºÅ©¸³Æ® ÂüÁ¶
+//    public GameObject portalUI;
+//    public Transform targetPosition;
+//    public PortalTransport portalTransport;
+//    private bool isPortalActive = false;
+//    private SkeletonSpawner spawner;
 
-//    private bool isPortalActive = false; // PortalUI È°¼ºÈ­ ¿©ºÎ
+//    private void Start()
+//    {
+//        spawner = FindObjectOfType<SkeletonSpawner>(); // ìŠ¤í¬ë„ˆ ì°¾ê¸°
+
+//        UIManager.instance.SetUIVisibility(false);
+//    }
 
 //    private void OnTriggerEnter(Collider other)
 //    {
-//        if (other.CompareTag("Player")) // ÇÃ·¹ÀÌ¾î°¡ Æ÷Å»¿¡ ´ê¾ÒÀ» ¶§¸¸ UI È°¼ºÈ­
+//        if (other.CompareTag("Player"))
 //        {
 //            OpenPortalUI();
 //        }
@@ -98,7 +161,6 @@ public class PortalController : MonoBehaviour
 //        {
 //            if (Input.GetKeyDown(KeyCode.C))
 //            {
-//                //  Fade È¿°ú Àû¿ë ÈÄ ÀÌµ¿ ½ÇÇà
 //                GameManager.instance.FadeInOut(() =>
 //                {
 //                    PortalTransition();
@@ -125,20 +187,18 @@ public class PortalController : MonoBehaviour
 
 //    private void PortalTransition()
 //    {
-//        //  UI ´İ±â (Fade ÈÄ¿¡µµ ³²¾ÆÀÖ´Â ¹®Á¦ ÇØ°á)
-//        ClosePortalUI();
-
-//        //  ÇÃ·¹ÀÌ¾î ÀÌµ¿ ½ÇÇà
 //        if (portalTransport != null)
 //        {
 //            portalTransport.MovePlayer(GameObject.FindGameObjectWithTag("Player").GetComponent<Collider>(), targetPosition);
 //        }
-//        else
+
+//        ClosePortalUI();
+
+//        if (spawner != null)
 //        {
-//            Debug.LogError("PortalController: portalTransport°¡ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+//            spawner.ActivateEnemies(); // í¬íƒˆì„ í†µê³¼í•˜ë©´ ì ì„ í™œì„±í™”
 //        }
+
+//        UIManager.instance.SetUIVisibility(true);
 //    }
 //}
-
-
-
