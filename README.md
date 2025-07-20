@@ -1,9 +1,9 @@
-
-<img src="https://github.com/user-attachments/assets/de48e5e6-e623-48b6-bdb4-05dba364e520" alt="Combat & Movement Showcase Main Image" width="250"/>
-
-
-
 # Combat & Movement Showcase
+<div style="display: flex;">
+  <img src="https://github.com/user-attachments/assets/de48e5e6-e623-48b6-bdb4-05dba364e520" alt="Main Image" width="300" style="margin-right: 40px;" />
+  <img src="https://github.com/user-attachments/assets/5ba18660-3a7c-4cde-86e6-07c83e5a1c3c" alt="Scene Image" width="300" />
+</div>
+
 
 - Unity로 제작한 3D 액션 모션 기반 개인 프로젝트입니다.  
 - 이동 및 전투 애니메이션을 구현하며, 캐릭터 조작과 콤보 시스템의 기초를 실험했습니다.
